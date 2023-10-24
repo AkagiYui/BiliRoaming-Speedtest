@@ -15,14 +15,5 @@
     "enable": true,
     "title": "哔哩漫游公共解析服务器测速",
     "file_name": "result.jpg"
-  },
-  "sftp": {
-    "enable": false,
-    "host": "127.0.0.1",
-    "port": 22,
-    "user": "root",
-    "passwd": "114514",
-    "local_path": "result.jpg",
-    "remote_path": "/www/wwwroot/127.0.0.1/biliserver/biliroaming.jpg"
   }
 }

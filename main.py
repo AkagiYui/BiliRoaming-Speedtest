@@ -3,9 +3,8 @@ import time
 
 from loguru import logger
 
-from utils.Parameter import get_config_file, get_parameter
+from utils.Parameter import get_config_file
 from utils.RefreshKey import refresh_key
-from utils.SftpUpload import upload
 from utils.SpeedTest import speedtest
 
 
@@ -26,8 +25,6 @@ def main():
     else:
         logger.info("开始测速")
         speedtest()
-    if get_parameter("sftp", "enable"):
-        upload()
 
 
 if __name__ == '__main__':
