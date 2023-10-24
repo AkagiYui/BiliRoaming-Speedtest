@@ -1,8 +1,9 @@
 import hashlib
 import json
-import requests
 import time
 import urllib
+
+import requests
 
 
 class Config:

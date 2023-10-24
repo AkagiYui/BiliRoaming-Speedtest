@@ -1,10 +1,12 @@
-import time
 import sys
+import time
+
 from loguru import logger
+
 from utils.Parameter import get_config_file, get_parameter
 from utils.RefreshKey import refresh_key
-from utils.SpeedTest import speedtest
 from utils.SftpUpload import upload
+from utils.SpeedTest import speedtest
 
 
 def main():

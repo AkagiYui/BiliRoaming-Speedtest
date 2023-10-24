@@ -1,13 +1,15 @@
-import requests
 import time
-from loguru import logger
-from multiprocessing import Process, Manager
-from simplejson.errors import JSONDecodeError
-from requests.exceptions import ConnectionError, ReadTimeout
-from utils.Parameter import get_parameter, read_server_list, appsign
-from utils.DrawImage import draw_img
+from multiprocessing import Manager, Process
 
-USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+import requests
+from loguru import logger
+from requests.exceptions import ConnectionError, ReadTimeout
+from simplejson.errors import JSONDecodeError
+
+from constant import APP_KEY_TH, APP_SEC_TH, AREA_LIST, USER_AGENT
+from utils.DrawImage import draw_img
+from utils.Parameter import appsign, get_parameter, read_server_list
+
 PLATFORM_INFO = get_parameter('platform_info')
 VERSION_CODE = PLATFORM_INFO['version_code']
 VERSION_NAME = PLATFORM_INFO['version_name']
@@ -16,15 +18,6 @@ ACCESS_KEY = get_parameter('user_info', 'access_token')
 APP_KEY = PLATFORM_INFO['appkey']
 APP_SEC = PLATFORM_INFO['appsec']
 PLATFORM = PLATFORM_INFO['platform']
-APP_KEY_TH = '7d089525d3611b1c'
-APP_SEC_TH = 'acd495b248ec528c2eed1e862d393126'
-
-AREA_LIST = [
-    {'cn': 266323},
-    {'hk': 425578},
-    {'tw': 285951},
-    {'th': 377544}
-]
 
 
 def speedtest():

@@ -1,11 +1,12 @@
-import requests
-import time
-import pathlib
 import json
-from loguru import logger
-from utils.Parameter import appsign
+import pathlib
+import time
 
-USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+import requests
+from loguru import logger
+
+from constant import USER_AGENT
+from utils.Parameter import appsign
 
 
 def refresh_key(access_token, refresh_token, appkey, appsec):
