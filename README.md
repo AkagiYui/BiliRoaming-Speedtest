@@ -8,3 +8,23 @@
 
 - 移除了 sftp 上传部分
 - 移除了图片生成部分
+
+## 使用
+
+### 安装依赖
+
+```shell
+pip install -r requirements.txt
+```
+
+### 登录哔哩哔哩账号
+
+```shell
+python -m module.login
+```
+
+### 生成报告
+
+```shell
+python main.py
+```

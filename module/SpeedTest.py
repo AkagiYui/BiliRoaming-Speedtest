@@ -6,9 +6,10 @@ from loguru import logger
 from requests.exceptions import ConnectionError, ReadTimeout
 from simplejson.errors import JSONDecodeError
 
-from constant import APP_KEY_TH, APP_SEC_TH, AREA_LIST, USER_AGENT
-from utils.html import make_html
-from utils.Parameter import appsign, get_parameter, read_server_list
+from module.config import get_parameter, get_server_list
+from module.constant import APP_KEY_TH, APP_SEC_TH, AREA_LIST, USER_AGENT
+from module.html import make_html
+from module.login import appsign
 
 PLATFORM_INFO = get_parameter('platform_info')
 VERSION_CODE = PLATFORM_INFO['version_code']
@@ -33,7 +34,7 @@ def speedtest():
     mgr = Manager()
     result = mgr.list()
 
-    server_list = mgr.list(read_server_list())
+    server_list = mgr.list(get_server_list())
 
     p = Process(target=loop, args=(session, result, server_list))
     p.start()
