@@ -7,7 +7,7 @@ from requests.exceptions import ConnectionError, ReadTimeout
 from simplejson.errors import JSONDecodeError
 
 from constant import APP_KEY_TH, APP_SEC_TH, AREA_LIST, USER_AGENT
-from utils.DrawImage import draw_img
+from utils.html import make_html
 from utils.Parameter import appsign, get_parameter, read_server_list
 
 PLATFORM_INFO = get_parameter('platform_info')
@@ -41,7 +41,7 @@ def speedtest():
 
     result = sorted(result, key=lambda r: r['status']['avg'])
     duration = int(time.time() - start_time)
-    draw_img(result, duration)
+    make_html(result, duration)
 
 
 def loop(session, result, server_list):
