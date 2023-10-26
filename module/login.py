@@ -7,7 +7,19 @@ import requests
 from loguru import logger
 
 from module.config import update_config
-from module.constant import APP_KEY_CN, APP_SEC_CN, CID, HEADER, USER_AGENT
+from module.constant import APP_KEY_CN, APP_SEC_CN, USER_AGENT
+
+CID = 86  # 国际电话区号
+HEADER = {
+    'Host': 'passport.bilibili.com',
+    'buvid': 'XU4B4E44813CCE878BC2D965745433AB55B06',
+    'env': 'prod',
+    'app-key': 'android64',
+    'user-agent': USER_AGENT,
+    'x-bili-trace-id': '7a709e7790e6e76a7de8c8e48c640c77:7de8c8e48c640c77:0:0',
+    'content-type': 'application/x-www-form-urlencoded; charset=utf-8',
+    # "accept-encoding": "gzip, deflate, br"
+}
 
 
 def appsign(params: dict, appkey: str, appsec: str) -> dict:

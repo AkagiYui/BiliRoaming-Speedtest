@@ -1,6 +1,52 @@
 import time
 
-from module.constant import HTML_TEMPLATE, HTML_TITLE
+HTML_TITLE = '哔哩漫游公共解析服务器测速'
+HTML_TEMPLATE = '''<html>
+<head>
+  <style>
+    table {
+        width: 100%;
+    }
+    td, th {
+        border: 1px solid rgb(190, 190, 190);
+        text-align: center;
+        padding : 4px;
+    }
+    td[scope="server"] {
+        text-align: left;
+    }
+    tr:nth-child(even) {
+        background-color: #eee;
+    }
+    tr[scope="header"] > th {
+        background-color: #ddd;
+    }
+    td[scope="ping"] {
+        text-align: right;
+    }
+  </style>
+</head>
+<body>
+<table>
+<center><a>%TITLE%</a></center>
+<caption>%CAPTION%</caption>
+<tr scope="header">
+  <th colspan="4">安卓</th>
+  <th colspan="3">WEB</th>
+  <th rowspan="2">平均</th>
+  <th rowspan="2">地址</th>
+</tr>
+<tr scope="header">
+  <th>CN</th>
+  <th>HK</th>
+  <th>TW</th>
+  <th>TH</th>
+  <th>CN</th>
+  <th>HK</th>
+  <th>TW</th>
+</tr>
+<tr>
+'''
 
 
 def make_html(result: list[dict], duration: int) -> str:
