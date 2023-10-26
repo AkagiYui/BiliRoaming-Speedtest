@@ -8,7 +8,6 @@ from simplejson.errors import JSONDecodeError
 
 from module.config import get_parameter, get_server_list
 from module.constant import APP_KEY_TH, APP_SEC_TH, AREA_LIST, USER_AGENT
-from module.html import make_html
 from module.login import appsign
 
 PLATFORM_INFO = get_parameter('platform_info')
@@ -21,7 +20,12 @@ APP_SEC = PLATFORM_INFO['appsec']
 PLATFORM = PLATFORM_INFO['platform']
 
 
-def speedtest():
+def speedtest() -> tuple[list[dict], int]:
+    """
+    测速
+
+    :return: (测速结果, 用时 秒)
+    """
     platform = get_parameter('platform_info', 'platform')
     session = requests.Session()
     session.headers.update({'user-agent': USER_AGENT})
@@ -36,16 +40,16 @@ def speedtest():
 
     server_list = mgr.list(get_server_list())
 
-    p = Process(target=loop, args=(session, result, server_list))
+    p = Process(target=_loop, args=(session, result, server_list))
     p.start()
     p.join()
 
     result = sorted(result, key=lambda r: r['status']['avg'])
     duration = int(time.time() - start_time)
-    make_html(result, duration)
+    return result, duration
 
 
-def loop(session, result, server_list):
+def _loop(session, result, server_list):
     for server in server_list:
         server_result: dict = {
             'server': server,
@@ -54,11 +58,11 @@ def loop(session, result, server_list):
                 'android': []
             }
         }
-        Process(target=processing, args=(
+        Process(target=_processing, args=(
             server, server_result, session, result)).start()
 
 
-def processing(server, server_result, session, result):
+def _processing(server, server_result, session, result):
     try:
         session.head(f'https://{server}', timeout=15)
     except Exception as e:

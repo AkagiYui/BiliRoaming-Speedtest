@@ -5,6 +5,7 @@ from loguru import logger
 
 from module.config import get_config
 from module.SpeedTest import speedtest
+from module.html import make_html
 from module.login import refresh_key
 
 if __name__ == '__main__':
@@ -27,4 +28,6 @@ if __name__ == '__main__':
         refresh_key(access_token, refresh_token, appkey, appsec)
 
     logger.info('开始测速')
-    speedtest()
+    result, duration = speedtest()
+    make_html(result, duration)
+

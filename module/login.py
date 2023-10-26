@@ -95,7 +95,7 @@ def _update_info():
     expires_in = token_info["expires_in"]
     current_timestamp = int(time.time())
     expires_date = expires_in + current_timestamp
-    with open('Config/config.json', 'r+', encoding='utf-8') as json_file:
+    with open('config.json', 'r+', encoding='utf-8') as json_file:
         data = json.load(json_file)
         data['user_info']['access_token'] = access_token
         data['user_info']['refresh_token'] = refresh_token

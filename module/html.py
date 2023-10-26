@@ -12,34 +12,28 @@ def make_html(result: list[dict], duration: int) -> None:
 
     for r in result:
         text = ''
-        for android in r['status']['android']:
-            if android['code'] == 0:
-                html_output += f'<td scope="ping" style="color: {_ping_color(android["ping"])};">{android["ping"]}ms</td>'
-                text += f'{android["ping"]:>5}ms|'
-            elif android['code'] == -412 or android['http_code'] == 412:
+
+        def add_row(server: dict) -> None:
+            nonlocal html_output, text
+            if server['code'] == 0:
+                html_output += f'<td scope="ping" style="color: {_ping_color(server["ping"])};">{server["ping"]}ms</td>'
+                text += f'{server["ping"]:>5}ms|'
+            elif server['code'] == -412 or server['http_code'] == 412:
                 html_output += '<td style="color: red;">BAN</td>'
                 text += f'{"BAN":^7}|'
-            elif android['code'] == -10403 or android['http_code'] == 10403:
+            elif server['code'] == -10403 or server['http_code'] == 10403:
                 html_output += '<td></td>'
                 text += '       |'
             else:
-                html_output += f'<td style="color: red;">{android["code"] if android["code"] != -1 else android["http_code"] if android["http_code"] != 404 else ""}</td>'
+                html_output += f'<td style="color: red;">{server["code"] if server["code"] != -1 else server["http_code"] if server["http_code"] != 404 else ""}</td>'
                 text += '       |'
+
+        for server in r['status']['android']:
+            add_row(server)
         text += ' |'
-        for web in r['status']['web']:
-            if web['code'] == 0:
-                html_output += f'<td scope="ping" style="color: {_ping_color(web["ping"])};">{web["ping"]}ms</td>'
-                text += f'{web["ping"]:>5}ms|'
-            elif web['code'] == -412 or web['http_code'] == 412:
-                html_output += '<td style="color: red;">BAN</td>'
-                text += f'{"BAN":^7}|'
-            elif web['code'] == -10403 or web['http_code'] == 10403:
-                html_output += '<td></td>'
-                text += '       |'
-            else:
-                html_output += f'<td style="color: red;">{web["code"] if web["code"] != -1 else web["http_code"] if web["http_code"] != 404 else ""}</td>'
-                text += '       |'
-        html_output += f'<td scope="ping" style="color: {_ping_color(r["status"]["avg"])};">{ r["status"]["avg"]}ms</td><td scope="server">{r["server"]}</td></tr>'
+        for server in r['status']['web']:
+            add_row(server)
+        html_output += f'<td scope="ping" style="color: {_ping_color(r["status"]["avg"])};">{r["status"]["avg"]}ms</td><td scope="server">{r["server"]}</td></tr>'
         text += f' |{r["status"]["avg"]:>5}ms| {r["server"]}'
         print(text)
 

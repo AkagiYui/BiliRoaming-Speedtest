@@ -46,10 +46,10 @@ def update_config(new_config: dict) -> None:
 def get_server_list() -> list[str]:
     """获取服务器列表"""
     path = Path(__file__).parent.parent / 'server.txt'
-    server_list = list()
+    server_list = set()
     with open(path, mode='r', encoding='utf-8') as f:
         for line in f:
             if line.strip().startswith("#") and line.strip() != "":
                 continue
-            server_list.append(line.strip())
-    return server_list
+            server_list.add(line.strip())
+    return list(server_list)
