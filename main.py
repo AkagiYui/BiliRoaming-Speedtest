@@ -6,7 +6,7 @@ from loguru import logger
 from module.config import get_config
 from module.html import make_html
 from module.login import refresh_key
-from module.SpeedTest import speedtest
+from module.speedtest import speedtest
 
 if __name__ == '__main__':
     # 设置logger
