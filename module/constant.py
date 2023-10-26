@@ -7,6 +7,12 @@ APP_SEC_CN = '560c52ccd288fed045859ed18bffd973'
 APP_KEY_TH = '7d089525d3611b1c'
 APP_SEC_TH = 'acd495b248ec528c2eed1e862d393126'
 
+PLATFORM = 'android'
+VERSION_CODE = '1100'
+VERSION_NAME = '1.6.10'
+
+HTML_TITLE = '哔哩漫游公共解析服务器测速'
+
 AREA_LIST = [
     {'cn': 266323},
     {'hk': 425578},

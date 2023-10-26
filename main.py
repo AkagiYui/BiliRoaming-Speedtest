@@ -4,9 +4,9 @@ import time
 from loguru import logger
 
 from module.config import get_config
-from module.SpeedTest import speedtest
 from module.html import make_html
 from module.login import refresh_key
+from module.SpeedTest import speedtest
 
 if __name__ == '__main__':
     # 设置logger
@@ -23,11 +23,10 @@ if __name__ == '__main__':
         logger.info(f'access_token 已过期，尝试刷新')
         access_token: str = config['user_info']['access_token']
         refresh_token: str = config['user_info']['refresh_token']
-        appkey: str = config['platform_info']['appkey']
-        appsec: str = config['platform_info']['appsec']
-        refresh_key(access_token, refresh_token, appkey, appsec)
+        refresh_key(access_token, refresh_token)
 
     logger.info('开始测速')
     result, duration = speedtest()
-    make_html(result, duration)
-
+    html_text = make_html(result, duration)
+    with open('index.html', mode='w', encoding='utf-8') as f:
+        f.write(html_text)

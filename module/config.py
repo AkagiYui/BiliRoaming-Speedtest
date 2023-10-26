@@ -6,7 +6,7 @@ from loguru import logger
 
 def get_config() -> dict | None:
     """获取配置"""
-    path = Path(__file__).parent.parent / 'config.json'
+    path = Path(__file__).parent.parent / 'user_info.json'
     try:
         with open(path, 'r', encoding='utf-8') as json_file:
             data = json.load(json_file)
@@ -35,7 +35,7 @@ def get_parameter(*parameters) -> any:
 def update_config(new_config: dict) -> None:
     """更新配置文件"""
     final_config = get_config().update(new_config)
-    path = Path(__file__).parent.parent / 'config.json'
+    path = Path(__file__).parent.parent / 'user_info.json'
     try:
         with open(path, 'w', encoding='utf-8') as json_file:
             json.dump(final_config, json_file, ensure_ascii=False, indent=2)

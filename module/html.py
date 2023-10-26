@@ -1,12 +1,18 @@
 import time
 
-from module.config import get_parameter
-from module.constant import HTML_TEMPLATE
+from module.constant import HTML_TEMPLATE, HTML_TITLE
 
 
-def make_html(result: list[dict], duration: int) -> None:
+def make_html(result: list[dict], duration: int) -> str:
+    """
+    生成html
+
+    :param result: 测速结果
+    :param duration: 测速耗时
+    :return: html字符串
+    """
     html_output = HTML_TEMPLATE.replace('%CAPTION%', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
-    html_output = html_output.replace('%TITLE%', get_parameter('image_output', 'title'))
+    html_output = html_output.replace('%TITLE%', HTML_TITLE)
 
     print(f'{"cn":^7}|{"hk":^7}|{"tw":^7}|{"th":^7}| |{"cn":^7}|{"hk":^7}|{"tw":^7}| |{"avg":^7}| server')
 
@@ -39,10 +45,7 @@ def make_html(result: list[dict], duration: int) -> None:
 
     html_output += f'</table><center><a>测速完成, 共耗时: {str(duration)}秒</a></center></body></html>'
     html_output = html_output.replace('陈睿', '**').replace('死', '*').replace('妈', '*')
-
-    # 写出html文件
-    with open('result.html', 'w') as f:
-        f.write(html_output)
+    return html_output
 
 
 def _ping_color(ping: int) -> str:

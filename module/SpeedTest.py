@@ -3,21 +3,17 @@ from multiprocessing import Manager, Process
 
 import requests
 from loguru import logger
+from requests import Session
 from requests.exceptions import ConnectionError, ReadTimeout
 from simplejson.errors import JSONDecodeError
 
 from module.config import get_parameter, get_server_list
-from module.constant import APP_KEY_TH, APP_SEC_TH, AREA_LIST, USER_AGENT
+from module.constant import (APP_KEY_CN, APP_KEY_TH, APP_SEC_CN, APP_SEC_TH,
+                             AREA_LIST, PLATFORM, USER_AGENT, VERSION_CODE,
+                             VERSION_NAME)
 from module.login import appsign
 
-PLATFORM_INFO = get_parameter('platform_info')
-VERSION_CODE = PLATFORM_INFO['version_code']
-VERSION_NAME = PLATFORM_INFO['version_name']
-
 ACCESS_KEY = get_parameter('user_info', 'access_token')
-APP_KEY = PLATFORM_INFO['appkey']
-APP_SEC = PLATFORM_INFO['appsec']
-PLATFORM = PLATFORM_INFO['platform']
 
 
 def speedtest() -> tuple[list[dict], int]:
@@ -26,30 +22,29 @@ def speedtest() -> tuple[list[dict], int]:
 
     :return: (测速结果, 用时 秒)
     """
-    platform = get_parameter('platform_info', 'platform')
     session = requests.Session()
     session.headers.update({'user-agent': USER_AGENT})
     session.headers.update({'Build': VERSION_CODE})
     session.headers.update({'x-from-biliroaming': VERSION_NAME})
-    session.headers.update({'platform-from-biliroaming': platform})
+    session.headers.update({'platform-from-biliroaming': PLATFORM})
 
-    start_time = time.time()
+    start_time: float = time.time()
 
     mgr = Manager()
-    result = mgr.list()
+    result: list[dict] = mgr.list()
 
-    server_list = mgr.list(get_server_list())
+    server_list: list[str] = mgr.list(get_server_list())
 
     p = Process(target=_loop, args=(session, result, server_list))
     p.start()
     p.join()
 
-    result = sorted(result, key=lambda r: r['status']['avg'])
-    duration = int(time.time() - start_time)
+    result: list[dict] = sorted(result, key=lambda r: r['status']['avg'])
+    duration: int = int(time.time() - start_time)
     return result, duration
 
 
-def _loop(session, result, server_list):
+def _loop(session: Session, result: list[dict], server_list: list[str]) -> None:
     for server in server_list:
         server_result: dict = {
             'server': server,
@@ -58,19 +53,18 @@ def _loop(session, result, server_list):
                 'android': []
             }
         }
-        Process(target=_processing, args=(
-            server, server_result, session, result)).start()
+        Process(target=_processing, args=(server, server_result, session, result)).start()
 
 
-def _processing(server, server_result, session, result):
+def _processing(server: str, server_result: dict, session: Session, result: list[dict]) -> None:
     try:
         session.head(f'https://{server}', timeout=15)
     except Exception as e:
         logger.debug(e)
         return
-    count = 0
-    total = 0
-    test_url = ""
+    count: int = 0  # 有效次数
+    total: int = 0  # 总耗时
+
     for area_data in AREA_LIST:
         area = list(area_data.keys())[0]
         ep_id = list(area_data.values())[0]
@@ -86,7 +80,7 @@ def _processing(server, server_result, session, result):
                 'fourk': 1,
                 'qn': 125
             }
-            params = appsign(params, APP_KEY, APP_SEC)
+            params = appsign(params, APP_KEY_CN, APP_SEC_CN)
             test_url = f'https://{server}/pgc/player/api/playurl'
         else:
             params = {
@@ -210,7 +204,7 @@ def _processing(server, server_result, session, result):
                 'fourk': 1,
                 'qn': 125
             }
-            params = appsign(params, APP_KEY, APP_SEC)
+            params = appsign(params, APP_KEY_CN, APP_SEC_CN)
             test_url = f'https://{server}/pgc/player/web/playurl'
         else:
             continue
@@ -305,8 +299,7 @@ def _processing(server, server_result, session, result):
                 }
             )
             continue
-    avg = 15000
-    if count > 0:
-        avg = int(total / count)
+
+    avg = int(total / count) if count > 0 else 15000
     server_result['status']['avg'] = avg
     result.append(server_result)
