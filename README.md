@@ -8,6 +8,8 @@
 
 - 移除了 sftp 上传部分
 - 移除了图片生成部分
+- 重构了代码
+- 对 `server.txt` 进行排序
 
 ## 使用
 
@@ -21,6 +23,12 @@ pip install -r requirements.txt
 
 ```shell
 python -m module.login
+```
+
+### 编辑服务器列表并排序
+
+```shell
+python -m module.sort
 ```
 
 ### 生成报告
