@@ -2,6 +2,7 @@ import time
 
 HTML_TITLE = '哔哩漫游公共解析服务器测速'
 HTML_TEMPLATE = '''<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <head>
   <style>
     table {
@@ -45,8 +46,7 @@ HTML_TEMPLATE = '''<html>
   <th>HK</th>
   <th>TW</th>
 </tr>
-<tr>
-'''
+<tr>'''
 
 
 def make_html(result: list[dict], duration: int) -> str:
