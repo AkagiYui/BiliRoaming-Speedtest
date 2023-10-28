@@ -60,41 +60,37 @@ def make_html(result: list[dict], duration: int) -> str:
     html_output = HTML_TEMPLATE.replace('%CAPTION%', time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()))
     html_output = html_output.replace('%TITLE%', HTML_TITLE)
 
-    print(f'{"cn":^7}|{"hk":^7}|{"tw":^7}|{"th":^7}| |{"cn":^7}|{"hk":^7}|{"tw":^7}| |{"avg":^7}| server')
+    def add_row(_server: dict) -> None:
+        nonlocal html_output
+        if _server['code'] == 0:
+            html_output += f'<td scope="ping" style="color: {_color(_server["ping"])};">{_server["ping"]}ms</td>'
+        elif _server['code'] == -412 or _server['http_code'] == 412:
+            html_output += '<td style="color: red;">BAN</td>'
+        elif _server['code'] == -10403 or _server['http_code'] == 10403:
+            html_output += '<td></td>'
+        else:
+            if _server["code"] != -1:
+                server_code = _server["code"]
+            elif _server["http_code"] != 404:
+                server_code = _server["http_code"]
+            else:
+                server_code = ""
+            html_output += f'<td style="color: red;">{server_code}</td>'
 
     for r in result:
-        text = ''
-
-        def add_row(server: dict) -> None:
-            nonlocal html_output, text
-            if server['code'] == 0:
-                html_output += f'<td scope="ping" style="color: {_ping_color(server["ping"])};">{server["ping"]}ms</td>'
-                text += f'{server["ping"]:>5}ms|'
-            elif server['code'] == -412 or server['http_code'] == 412:
-                html_output += '<td style="color: red;">BAN</td>'
-                text += f'{"BAN":^7}|'
-            elif server['code'] == -10403 or server['http_code'] == 10403:
-                html_output += '<td></td>'
-                text += '       |'
-            else:
-                html_output += f'<td style="color: red;">{server["code"] if server["code"] != -1 else server["http_code"] if server["http_code"] != 404 else ""}</td>'
-                text += '       |'
-
-        for server in r['status']['android']:
+        for server in r['android']:
             add_row(server)
-        text += ' |'
-        for server in r['status']['web']:
+        for server in r['web']:
             add_row(server)
-        html_output += f'<td scope="ping" style="color: {_ping_color(r["status"]["avg"])};">{r["status"]["avg"]}ms</td><td scope="server">{r["server"]}</td></tr>'
-        text += f' |{r["status"]["avg"]:>5}ms| {r["server"]}'
-        print(text)
+        html_output += f'<td scope="ping" style="color: {_color(r["avg"])};">{r["avg"]}ms</td>'
+        html_output += f'<td scope="server">{r["server"]}</td></tr>'
 
     html_output += f'</table><center><a>测速完成, 共耗时: {str(duration)}秒</a></center></body></html>'
     html_output = html_output.replace('陈睿', '**').replace('死', '*').replace('妈', '*')
     return html_output
 
 
-def _ping_color(ping: int) -> str:
+def _color(ping: int) -> str:
     """根据ping值获取颜色"""
     if ping < 150:
         return 'green'

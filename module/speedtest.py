@@ -50,7 +50,7 @@ def speedtest() -> tuple[list[dict], int]:
         process.join()
     duration: int = int(time.time() - start_time)
 
-    result: list[dict] = sorted(result_list, key=lambda r: r['status']['avg'])
+    result: list[dict] = sorted(result_list, key=lambda r: r['avg'])
     return result, duration
 
 
@@ -76,11 +76,9 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
     # 该服务器测试结果
     server_result: dict = {
         'server': server_host,  # 服务器域名
-        'status': {
-            'web': [],  # web端测试结果
-            'android': [],  # android端测试结果
-            'avg': -1,  # 平均延迟
-        }
+        'avg': -1,  # 平均延迟
+        'android': [],  # android端测试结果
+        'web': [],  # web端测试结果
     }
     valid_count: int = 0  # 有效次数
     total_time: int = 0  # 总耗时, 毫秒
@@ -92,7 +90,7 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
         valid_count += 1
         total_time += _ping
 
-    def go_test(_test_url: str, _params: dict) -> None:
+    def go_test(_test_url: str, _params: dict) -> dict:
         # 本次测试结果
         new_result = {
             'area': area,  # 地区
@@ -107,8 +105,8 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
             session.get(_test_url, timeout=10)  # 预热, 构造缓存
             time.sleep(1.5)
             response: Response = session.get(_test_url, params=_params, timeout=10)
-        except (ConnectionError, ReadTimeout) as e:
-            logger.error(f'请求 {_test_url} 异常: {e}')
+        except (ConnectionError, ReadTimeout) as _e:
+            logger.error(f'请求 {_test_url} 异常: {_e}')
         else:
             # 请求成功
             content_text = f'{response.text[:64]}...' if len(response.text) > 64 else response.text
@@ -121,7 +119,7 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
                 # 资源可用, 尝试解析内容
                 try:
                     data = response.json()  # 解析json
-                except JSONDecodeError as e:
+                except JSONDecodeError as _e:
                     # json解析失败, 回退到文本解析
                     data = {'code': -1}
                     if '"code":0,' in response.text:
@@ -129,7 +127,7 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
                     elif '"code":-412,' in response.text:
                         data['code'] = -412
                     else:
-                        logger.debug(f'请求 {_test_url} json解析失败: {e}')
+                        logger.debug(f'请求 {_test_url} json解析失败: {_e}')
                         logger.debug(f'content-type: {response.headers["content-type"]}')
 
                 # 记录数据
@@ -141,28 +139,29 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
             else:
                 # 资源不可用, 仅记录延迟和http状态码
                 logger.debug(f'请求 {_test_url} 失败: {content_text}')
-        server_result['status']['android'].append(new_result)
+        return new_result
+
+    # 请求参数
+    params: dict[str | int] = {
+        'access_key': ACCESS_KEY,
+        'fnver': 0,
+        'fnval': 464,
+        'platform': PLATFORM,
+        'fourk': 1,
+        'qn': 125
+    }
 
     # android 端
     for area, ep_id in AREA_EP_ID.items():
         test_url: str = f'{base_url}/pgc/player/api/playurl'  # 测试url
-        params: dict[str | int] = {  # 请求参数
-            'access_key': ACCESS_KEY,
-            'area': area,
-            'ep_id': ep_id,
-            'fnver': 0,
-            'fnval': 464,
-            'platform': PLATFORM,
-            'fourk': 1,
-            'qn': 125
-        }
+        params.update({'area': area, 'ep_id': ep_id})
         if area == 'th':
             test_url = f'{base_url}/intl/gateway/v2/ogv/playurl'
             params.update({'s_locale': 'zh_SG'})
             params = appsign(params, APP_KEY_TH, APP_SEC_TH)
         else:
             params = appsign(params, APP_KEY_CN, APP_SEC_CN)
-        go_test(test_url, params)
+        server_result['android'].append(go_test(test_url, params))
 
     # web
     for area, ep_id in AREA_EP_ID.items():
@@ -170,19 +169,10 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
             continue  # web端不支持泰区
 
         test_url = f'{base_url}/pgc/player/web/playurl'
-        params = {  # 请求参数
-            'access_key': ACCESS_KEY,
-            'area': area,
-            'ep_id': ep_id,
-            'fnver': 0,
-            'fnval': 464,
-            'platform': PLATFORM,
-            'fourk': 1,
-            'qn': 125
-        }
+        params.update({'area': area, 'ep_id': ep_id})
         params = appsign(params, APP_KEY_CN, APP_SEC_CN)
-        go_test(test_url, params)
+        server_result['web'].append(go_test(test_url, params))
 
     avg = int(total_time / valid_count) if valid_count > 0 else timeout * 1000
-    server_result['status']['avg'] = avg
+    server_result['avg'] = avg
     whole_result_list.append(server_result)
