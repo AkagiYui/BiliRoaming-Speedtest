@@ -1,11 +1,10 @@
 import time
+from json import JSONDecodeError
 from multiprocessing import Manager, Process
 
-import requests
+from httpx import (Client, ConnectTimeout, ReadTimeout, RemoteProtocolError,
+                   Response)
 from loguru import logger
-from requests import Response, Session
-from requests.exceptions import ConnectionError, ReadTimeout
-from simplejson.errors import JSONDecodeError
 
 from module.config import get_parameter, get_server_list
 from module.constant import (APP_KEY_CN, APP_KEY_TH, APP_SEC_CN, APP_SEC_TH,
@@ -30,19 +29,12 @@ def speedtest() -> tuple[list[dict], int]:
 
     :return: (测速结果, 用时 秒)
     """
-    session = requests.Session()
-    session.headers.update({'user-agent': USER_AGENT})
-    session.headers.update({'Build': VERSION_CODE})
-    session.headers.update({'x-from-biliroaming': VERSION_NAME})
-    session.headers.update({'platform-from-biliroaming': PLATFORM})
-
-    mgr = Manager()
-    result_list: list[dict] = mgr.list()
+    result_list: list[dict] = Manager().list()  # 测速结果集
 
     # 多进程测速
     processes: list[Process] = list()
     for server in get_server_list():
-        processes.append(Process(target=_processing, args=(server, session, result_list)))
+        processes.append(Process(target=_processing, args=(server, result_list)))
     start_time: float = time.time()
     for process in processes:
         process.start()
@@ -50,19 +42,26 @@ def speedtest() -> tuple[list[dict], int]:
         process.join()
     duration: int = int(time.time() - start_time)
 
-    result: list[dict] = sorted(result_list, key=lambda r: r['avg'])
-    return result, duration
+    sorted_result: list[dict] = sorted(result_list, key=lambda r: r['avg'])
+    return sorted_result, duration
 
 
-def _processing(server_host: str, session: Session, whole_result_list: list[dict]) -> None:
+def _processing(server_host: str, whole_result_list: list[dict]) -> None:
     """
     测速进程
 
     :param server_host: 服务器域名
-    :param session: requests session
-    :param whole_result_list: 测速结果
+    :param whole_result_list: 测速结果集
     :return:
     """
+
+    session = Client()
+    session.headers.update({
+        'user-agent': USER_AGENT,
+        'Build': VERSION_CODE,
+        'x-from-biliroaming': VERSION_NAME,
+        'platform-from-biliroaming': PLATFORM
+    })
 
     # 测试服务器是否可用
     timeout = 15  # 超时时间, 秒
@@ -105,7 +104,7 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
             session.get(_test_url, timeout=10)  # 预热, 构造缓存
             time.sleep(1.5)
             response: Response = session.get(_test_url, params=_params, timeout=10)
-        except (ConnectionError, ReadTimeout) as _e:
+        except (ConnectTimeout, ReadTimeout, RemoteProtocolError) as _e:
             logger.error(f'请求 {_test_url} 异常: {_e}')
         else:
             # 请求成功
@@ -115,7 +114,7 @@ def _processing(server_host: str, session: Session, whole_result_list: list[dict
                 'ping': ping,
                 'http_code': response.status_code,
             })
-            if response.ok:
+            if response.status_code < 400:
                 # 资源可用, 尝试解析内容
                 try:
                     data = response.json()  # 解析json
